@@ -175,7 +175,7 @@ public class NovacomInstallerView extends FrameView {
                     fc.setMultiSelectionEnabled(false);
                     fc.setDialogTitle("");
                     if(fc.showDialog(getFrame(), "Select")==JFileChooser.APPROVE_OPTION) {
-                        driver = new NovacomDrivers(fc.getSelectedFile());
+                        driver = new NovacomDrivers(fc.getSelectedFile().getAbsolutePath());
                         if(driver.install()) {
                             if(!System.getProperty("os.name").toLowerCase().contains("mac")) {
                                 JOptionPane.showMessageDialog(mainPanel, "Driver installed successfully.");

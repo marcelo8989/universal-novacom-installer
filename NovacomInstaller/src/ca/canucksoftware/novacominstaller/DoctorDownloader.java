@@ -19,6 +19,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import javax.swing.JOptionPane;
 import java.text.NumberFormat;
+import java.util.jar.JarInputStream;
 
 
 public class DoctorDownloader extends javax.swing.JDialog {
@@ -27,10 +28,7 @@ public class DoctorDownloader extends javax.swing.JDialog {
     private Timer t;
     private boolean downloadStarted;
     private String url;
-    private File doctor;
-    private int maxSize;
-    public boolean cancel;
-    NumberFormat nf;
+    private NovacomDrivers driver;
 
     public DoctorDownloader(java.awt.Frame parent) {
         super(parent);
@@ -38,13 +36,7 @@ public class DoctorDownloader extends javax.swing.JDialog {
         t = new Timer();
         downloadStarted = false;
         url = getURL();
-        doctor = new File(FileUtils.appDirectory(), "webOSDoctor"
-                + System.currentTimeMillis() + ".jar");
-        maxSize = 202910;
-        nf = NumberFormat.getNumberInstance();
-        nf.setGroupingUsed(false);
-        nf.setMaximumFractionDigits(2);
-        cancel = false;
+        driver = null;
     }
 
     public String getURL() {
@@ -66,11 +58,6 @@ public class DoctorDownloader extends javax.swing.JDialog {
         return result;
     }
 
-    private String getName(String s) {
-        return s.substring(s.lastIndexOf("/")+1);
-    }
-
-
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -80,7 +67,6 @@ public class DoctorDownloader extends javax.swing.JDialog {
     private void initComponents() {
 
         jLayeredPane1 = new javax.swing.JLayeredPane();
-        jButton1 = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
         jLabel1 = new javax.swing.JLabel();
 
@@ -110,19 +96,10 @@ public class DoctorDownloader extends javax.swing.JDialog {
         jLayeredPane1.setName("jLayeredPane1"); // NOI18N
         jLayeredPane1.setOpaque(true);
 
-        jButton1.setFont(jButton1.getFont());
-        jButton1.setText(resourceMap.getString("jButton1.text")); // NOI18N
-        jButton1.setName("jButton1"); // NOI18N
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-        jButton1.setBounds(110, 110, 79, 25);
-        jLayeredPane1.add(jButton1, javax.swing.JLayeredPane.DEFAULT_LAYER);
-
         jProgressBar1.setFont(jProgressBar1.getFont());
+        jProgressBar1.setMaximum(1);
         jProgressBar1.setName("jProgressBar1"); // NOI18N
+        jProgressBar1.setString(resourceMap.getString("jProgressBar1.string")); // NOI18N
         jProgressBar1.setStringPainted(true);
         jProgressBar1.setBounds(50, 60, 200, 30);
         jLayeredPane1.add(jProgressBar1, javax.swing.JLayeredPane.DEFAULT_LAYER);
@@ -142,7 +119,7 @@ public class DoctorDownloader extends javax.swing.JDialog {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLayeredPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 143, Short.MAX_VALUE)
+            .addComponent(jLayeredPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -160,13 +137,8 @@ public class DoctorDownloader extends javax.swing.JDialog {
 
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
     }//GEN-LAST:event_formWindowClosed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        cancel = true;
-    }//GEN-LAST:event_jButton1ActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLayeredPane jLayeredPane1;
     private javax.swing.JProgressBar jProgressBar1;
@@ -175,75 +147,15 @@ public class DoctorDownloader extends javax.swing.JDialog {
     class DoDownload extends TimerTask  {
         public void run() {
             t.cancel();
-            try {
-                int count;
-                int kbCount = 0;
-                double percent = 0;
-                BufferedInputStream in;
-                FileOutputStream fos;
-                BufferedOutputStream bout;
-                byte data[] = new byte[1024];
-                HttpURLConnection urlCon = null;
-                kbCount = 0;
-                count = 0;
-                if(maxSize>0)
-                    jProgressBar1.setMaximum(maxSize);
-                urlCon = (HttpURLConnection) new URL(url).openConnection();
-                urlCon.setInstanceFollowRedirects(true);
-                urlCon.setRequestProperty("REFERER",url);
-                if(urlCon.getContentLength()>-1) {
-                    maxSize = urlCon.getContentLength()/1024;
-                    jProgressBar1.setMaximum(maxSize);
-                }
-                urlCon.connect();
-                in = new BufferedInputStream(urlCon.getInputStream());
-                fos = new FileOutputStream(doctor);
-                bout = new BufferedOutputStream(fos);
-
-                while(((count = in.read(data)) != -1)&&!cancel) {
-                    if(maxSize>0) {
-                        percent = ((double)kbCount/(double)maxSize)*100.0;
-                        if((int)Math.ceil(percent)>100) {
-                            jLabel1.setText("<html>" + "Processing finished download. This may take a few minutes.");
-                            jProgressBar1.setString("100%");
-                        } else {
-                            jProgressBar1.setString((int)Math.ceil(percent) + "%");
-                        }
-                        jProgressBar1.setValue(kbCount);
-                    } else {
-                        if(kbCount<1000)
-                            jProgressBar1.setString(kbCount + " KB");
-                        else
-                            jProgressBar1.setString(nf.format(kbCount/1024) + " MB");
-                    }
-                    kbCount++;
-                    bout.write(data,0,count);
-                }
-                bout.flush();
-                fos.close();
-                bout.close();
-                in.close();
-                if(cancel) {
-                    doctor.delete();
-                }
-                urlCon.disconnect();
-                jLabel1.setText("<html>" + "Installing driver...");
-                NovacomDrivers driver = new NovacomDrivers(doctor);
-                if(driver.install()) {
-                    doctor.delete();
-                    JOptionPane.showMessageDialog(rootPane, "Driver installed successfully.");
-                    System.gc();
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(rootPane, "ERROR: Driver installation failed");
-                    System.exit(0);
-                }
-            } catch(Exception e) {
-                JOptionPane.showMessageDialog(rootPane, "ERROR:" + "\n\n" + e.getMessage());
-                e.printStackTrace();
-                System.exit(0);
+            NovacomDrivers driver = new NovacomDrivers(url);
+            driver.setGUI(jLabel1, jProgressBar1);
+            if(driver.install()) {
+                JOptionPane.showMessageDialog(rootPane, "Driver installed successfully.");
+            } else {
+                JOptionPane.showMessageDialog(rootPane, "ERROR: Driver installation failed");
             }
-            
+            System.gc();
+            dispose();
         }
     }
 }

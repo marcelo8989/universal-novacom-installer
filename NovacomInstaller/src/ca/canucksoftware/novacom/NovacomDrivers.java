@@ -12,16 +12,31 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.NumberFormat;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.zip.GZIPInputStream;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 
 /**
  * @author Jason Robitaille
  */
 public class NovacomDrivers {
-    private File doctor;
+    private String doctor;
     private Driver driver;
-    public NovacomDrivers(File webOSDoctor) {
+    private JProgressBar pBar;
+    private JLabel label;
+    private boolean cancel;
+
+    public NovacomDrivers(String webOSDoctor) {
+        pBar = null;
+        label = null;
+        cancel = false;
         doctor = webOSDoctor;
         String os = System.getProperty("os.name").toLowerCase();
         if(os.contains("windows")) {
@@ -40,7 +55,12 @@ public class NovacomDrivers {
             }
         }
     }
-    
+
+    public void setGUI(JLabel lbl, JProgressBar bar) {
+        label = lbl;
+        pBar = bar;
+    }
+
     private boolean is64bitLinux() {
         boolean result = false;
         try {
@@ -75,6 +95,9 @@ public class NovacomDrivers {
     public boolean installForWindows() {
         boolean result = false;
         File installer = extractInstaller();
+        if(label!=null) {
+            label.setText("<html>" + "Installing driver...");
+        }
         String command = "msiexec /i " + installer.getAbsolutePath() + " /passive";
         if(Novacom.isInstalled()) {
             command = "msiexec /i " + installer.getAbsolutePath()+ " REINSTALL=ALL REINSTALLMODE=vomus /norestart /passive";
@@ -110,6 +133,9 @@ public class NovacomDrivers {
         GZIPInputStream gzip;
         try {
             gzip = new GZIPInputStream(new FileInputStream(extractInstaller()));
+            if(label!=null) {
+                label.setText("<html>" + "Installing driver...");
+            }
             TarInputStream tar = new TarInputStream(gzip);
             TarEntry entry = tar.getNextEntry();
             while(entry != null) {
@@ -193,6 +219,9 @@ public class NovacomDrivers {
         boolean result = false;
         OnlineFile url = new OnlineFile(driver.toString());
         File installer = url.download();
+        if(label!=null) {
+            label.setText("<html>" + "Installing driver...");
+        }
         if(installer!=null) {
             try {
                 Process p = Runtime.getRuntime().exec("xterm +hold -e sudo dpkg -i "
@@ -218,27 +247,74 @@ public class NovacomDrivers {
     }
 
     private File extractInstaller() {
+        System.out.println(doctor);
         String tmpFilePath = System.getProperty("java.io.tmpdir");
         File result = new File(tmpFilePath, driver.toString().substring(
                 driver.toString().lastIndexOf("/")+1));
-        JarFile jarFile;
-        try {
-            jarFile = new JarFile(doctor);
-            InputStream in = jarFile.getInputStream(jarFile.getEntry(driver.toString()));
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(result));
-            byte[] buffer = new byte[2048];
-            for (;;)  {
-                int nBytes = in.read(buffer);
-                if (nBytes <= 0)
-                    break;
-                out.write(buffer, 0, nBytes);
+        if(doctor.startsWith("http://")) {
+            int maxSize = 202910;
+            NumberFormat nf = NumberFormat.getNumberInstance();
+            nf.setGroupingUsed(false);
+            nf.setMaximumFractionDigits(2);
+            JarInputStream jis = null;
+            try {
+                byte data[] = new byte[1024];
+                HttpURLConnection urlCon = (HttpURLConnection) new URL(doctor).openConnection();
+                urlCon.setInstanceFollowRedirects(true);
+                urlCon.setRequestProperty("REFERER", doctor);
+                urlCon.connect();
+                jis = new JarInputStream(urlCon.getInputStream());
+                JarEntry curr = jis.getNextJarEntry();
+                while(curr!=null) {
+                    if(curr.getName().equalsIgnoreCase(driver.toString())) {
+                        curr.getSize();
+                        double percent = 0;
+                        int count = 0;
+                        int kbCount = 0;
+                        OutputStream out = new BufferedOutputStream(new FileOutputStream(result));
+                        while((count = jis.read(data)) != -1) {
+                            if(label!=null) {
+                                if(kbCount<1000) {
+                                    pBar.setString(kbCount + " KB");
+                                } else {
+                                    pBar.setString(nf.format(((double) kbCount)/1024.0) + " MB");
+                                }
+                            }
+                            kbCount++;
+                            out.write(data, 0, count);
+                        }
+                        out.flush();
+                        out.close();
+                        break;
+                    }
+                    curr = jis.getNextJarEntry();
+                }
+                jis.close();
+            } catch(Exception e) {
+                e.printStackTrace();
+                System.err.println("Unable to extract " + driver.toString());
+                result = null;
             }
-            out.flush();
-            out.close();
-            in.close();
-        } catch (IOException e) {
-            System.err.println("Unable to extract " + driver.toString());
-            result = null;
+        } else {
+            JarFile jarFile = null;
+            try {
+                jarFile = new JarFile(new File(doctor));
+                InputStream in = jarFile.getInputStream(jarFile.getEntry(driver.toString()));
+                OutputStream out = new BufferedOutputStream(new FileOutputStream(result));
+                byte[] buffer = new byte[2048];
+                for (;;)  {
+                    int nBytes = in.read(buffer);
+                    if (nBytes <= 0)
+                        break;
+                    out.write(buffer, 0, nBytes);
+                }
+                out.flush();
+                out.close();
+                in.close();
+            } catch (IOException e) {
+                System.err.println("Unable to extract " + driver.toString());
+                result = null;
+            }
         }
         return result;
     }
