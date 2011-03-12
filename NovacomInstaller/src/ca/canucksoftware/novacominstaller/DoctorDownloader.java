@@ -5,21 +5,14 @@
 package ca.canucksoftware.novacominstaller;
 
 import ca.canucksoftware.novacom.NovacomDrivers;
-import ca.canucksoftware.utils.FileUtils;
-import java.net.HttpURLConnection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.net.URL;
 import java.net.URLConnection;
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import javax.swing.JOptionPane;
-import java.text.NumberFormat;
-import java.util.jar.JarInputStream;
 
 
 public class DoctorDownloader extends javax.swing.JDialog {

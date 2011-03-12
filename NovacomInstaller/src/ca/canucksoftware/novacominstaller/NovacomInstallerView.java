@@ -155,11 +155,10 @@ public class NovacomInstallerView extends FrameView {
                 }
             } else {
                 int response = JOptionPane.showOptionDialog(null, "<html><body width=\"400px\">" +
-                        "In order to install the Novacom driver on your system, a webOSDoctor is " +
-                        "temporarily required. You can download it now (approx 200MB) or, if you " +
-                        "already have one downloaded, you can select that one, and the driver will " +
-                        "be installed.",
-                        "webOSDoctor Required",
+                        "Universal Novacom Installer will now download the novacom drivers. " +
+                        "Alternatively, if you have a recent webOSDoctor saved to your system, you can " +
+                        "select that and the novacom drivers will be extracted and installed from it.",
+                        "Download Drivers?",
                         JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
                         new Object[] {"Download", "Select File...", "Cancel"},
                         "Download");

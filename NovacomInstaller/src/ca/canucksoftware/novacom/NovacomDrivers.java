@@ -247,7 +247,6 @@ public class NovacomDrivers {
     }
 
     private File extractInstaller() {
-        System.out.println(doctor);
         String tmpFilePath = System.getProperty("java.io.tmpdir");
         File result = new File(tmpFilePath, driver.toString().substring(
                 driver.toString().lastIndexOf("/")+1));
