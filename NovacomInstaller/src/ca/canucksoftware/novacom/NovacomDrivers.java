@@ -5,12 +5,15 @@ import ca.canucksoftware.utils.OnlineFile;
 import ca.canucksoftware.utils.TextStreamConsumer;
 import com.ice.tar.TarEntry;
 import com.ice.tar.TarInputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -217,7 +220,11 @@ public class NovacomDrivers {
 
     public boolean installForLinux() {
         boolean result = false;
-        OnlineFile url = new OnlineFile(driver.toString());
+        String debUrl = getURL(driver.toString());
+        if(debUrl==null) {
+            return false;
+        }
+        OnlineFile url = new OnlineFile(debUrl);
         File installer = url.download();
         if(label!=null) {
             label.setText("<html>" + "Installing driver...");
@@ -242,6 +249,25 @@ public class NovacomDrivers {
                 System.err.println("Unable to install " + driver.toString());
                 e.printStackTrace();
             }
+        }
+        return result;
+    }
+
+    public String getURL(String path) {
+        String result = null;
+        URLConnection urlCon = null;
+        try {
+            urlCon = new URL(path).openConnection();
+            urlCon.setRequestProperty("Content-Type", "text/plain");
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    new BufferedInputStream(urlCon.getInputStream())));
+            String line = br.readLine();
+            if(line!=null) {
+                result = line.trim();
+            }
+            br.close();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
         return result;
     }
