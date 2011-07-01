@@ -348,8 +348,8 @@ public class NovacomDrivers {
         Windows_x86("resources/NovacomInstaller_x86.msi"),
         Windows_x64("resources/NovacomInstaller_x64.msi"),
         Mac("resources/NovacomInstaller.pkg.tar.gz"),
-        Linux_x86("http://cdn.downloads.palm.com/sdkdownloads/2.1.0.519/sdkBinaries/palm-novacom_1.0.64_i386.deb"),
-        Linux_x64("http://cdn.downloads.palm.com/sdkdownloads/2.1.0.519/sdkBinaries/palm-novacom_1.0.64_amd64.deb");
+        Linux_x86("http://universal-novacom-installer.googlecode.com/svn/trunk/NovacomInstaller/linux32.txt"),
+        Linux_x64("http://universal-novacom-installer.googlecode.com/svn/trunk/NovacomInstaller/linux64.txt");
 
         private String model;
         Driver(String val) {

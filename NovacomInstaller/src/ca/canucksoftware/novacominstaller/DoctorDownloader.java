@@ -16,8 +16,8 @@ import javax.swing.JOptionPane;
 
 
 public class DoctorDownloader extends javax.swing.JDialog {
-    private final String NEWEST = "http://webosdoctor-url-generator.googlecode" +
-            ".com/svn/trunk/webOSDoctor%20URL%20Generator/current.txt";
+    private final String NEWEST = "http://universal-novacom-installer.googlecode.com/svn/trunk/" +
+            "NovacomInstaller/doctor.txt";
     private Timer t;
     private boolean downloadStarted;
     private String url;
@@ -38,8 +38,8 @@ public class DoctorDownloader extends javax.swing.JDialog {
         try {
             urlCon = new URL(NEWEST).openConnection();
             urlCon.setRequestProperty("Content-Type", "text/plain");
-            BufferedInputStream bis = new BufferedInputStream(urlCon.getInputStream());
-            BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    new BufferedInputStream(urlCon.getInputStream())));
             String line = br.readLine();
             if(line!=null) {
                 result = line.trim();
