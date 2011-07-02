@@ -102,7 +102,7 @@ public class NovacomDrivers {
             label.setText("<html>" + "Installing driver...");
         }
         String command = "msiexec /i " + installer.getAbsolutePath() + " /passive";
-        if(Novacom.isInstalled()) {
+        if(Novacom.isInstalled() || Novacom.serviceInstalled()) {
             command = "msiexec /i " + installer.getAbsolutePath()+ " REINSTALL=ALL REINSTALLMODE=vomus /norestart /passive";
         }
         try {
