@@ -10,10 +10,7 @@ import org.jdesktop.application.SingleFrameApplication;
 import org.jdesktop.application.FrameView;
 import javax.swing.JOptionPane;
 import java.io.*;
-import java.util.jar.*;
-import java.util.*;
-import java.util.zip.*;
-import javax.swing.JFileChooser;
+import java.util.TimerTask;
 import javax.swing.JFrame;
 
 /**
@@ -39,10 +36,9 @@ public class NovacomInstallerView extends FrameView {
                 jLabel2.setText("Linux 32bit");
             } else {
                 jLabel2.setText("Linux 64bit");
-            }
-            
+            }            
         } else {
-            jLabel2.setText("<unsupported>");
+            jLabel2.setText("<unknown>");
         }
     }
 
@@ -144,47 +140,9 @@ public class NovacomInstallerView extends FrameView {
 
     class DoInstallation extends TimerTask  {
         public void run() {
-            String os = System.getProperty("os.name").toLowerCase();
-            NovacomDrivers driver;
-            if(os.contains("linux")) {
-                driver = new NovacomDrivers(null);
-                if(driver.install()) {
-                    JOptionPane.showMessageDialog(mainPanel, "Driver installed successfully.");
-                } else {
-                    JOptionPane.showMessageDialog(mainPanel, "ERROR: Driver installation failed");
-                }
-            } else {
-                int response = JOptionPane.showOptionDialog(null, "<html><body width=\"400px\">" +
-                        "Universal Novacom Installer will now download the novacom drivers. " +
-                        "Alternatively, if you have a recent webOSDoctor saved to your system, you can " +
-                        "select that and the novacom drivers will be extracted and installed from it.",
-                        "Download Drivers?",
-                        JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-                        new Object[] {"Download", "Select File...", "Cancel"},
-                        "Download");
-                if(response==JOptionPane.YES_OPTION) {
-                    JFrame mainFrame = NovacomInstallerApp.getApplication().getMainFrame();
-                    DoctorDownloader download = new DoctorDownloader(mainFrame);
-                    download.setLocationRelativeTo(mainFrame);
-                    NovacomInstallerApp.getApplication().show(download);
-                } else if(response==JOptionPane.NO_OPTION) {
-                    JFileChooser fc = new JFileChooser();
-                    fc.setAcceptAllFileFilterUsed(false);
-                    fc.setFileFilter(new DoctorChooseFilter());
-                    fc.setMultiSelectionEnabled(false);
-                    fc.setDialogTitle("");
-                    if(fc.showDialog(getFrame(), "Select")==JFileChooser.APPROVE_OPTION) {
-                        driver = new NovacomDrivers(fc.getSelectedFile().getAbsolutePath());
-                        if(driver.install()) {
-                            if(!System.getProperty("os.name").toLowerCase().contains("mac")) {
-                                JOptionPane.showMessageDialog(mainPanel, "Driver installed successfully.");
-                            }
-                        } else {
-                            JOptionPane.showMessageDialog(mainPanel, "ERROR: Driver installation failed");
-                        }
-                    }
-                }
-            }
+            JFrame mainFrame = NovacomInstallerApp.getApplication().getMainFrame();
+            DriverDownloader downloader = new DriverDownloader(mainFrame);
+            NovacomInstallerApp.getApplication().show(downloader);
             jButton1.setEnabled(true);
             jButton1.setText("Install Novacom");
         }

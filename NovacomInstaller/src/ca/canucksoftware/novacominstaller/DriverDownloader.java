@@ -7,48 +7,18 @@ package ca.canucksoftware.novacominstaller;
 import ca.canucksoftware.novacom.NovacomDrivers;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.net.URL;
-import java.net.URLConnection;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import javax.swing.JOptionPane;
 
 
-public class DoctorDownloader extends javax.swing.JDialog {
-    private final String NEWEST = "http://universal-novacom-installer.googlecode.com/svn/trunk/" +
-            "NovacomInstaller/doctor.txt";
+public class DriverDownloader extends javax.swing.JDialog {
     private Timer t;
     private boolean downloadStarted;
-    private String url;
-    private NovacomDrivers driver;
 
-    public DoctorDownloader(java.awt.Frame parent) {
+    public DriverDownloader(java.awt.Frame parent) {
         super(parent);
         initComponents();
         t = new Timer();
         downloadStarted = false;
-        url = getURL();
-        driver = null;
-    }
-
-    public String getURL() {
-        String result = null;
-        URLConnection urlCon = null;
-        try {
-            urlCon = new URL(NEWEST).openConnection();
-            urlCon.setRequestProperty("Content-Type", "text/plain");
-            BufferedReader br = new BufferedReader(new InputStreamReader(
-                    new BufferedInputStream(urlCon.getInputStream())));
-            String line = br.readLine();
-            if(line!=null) {
-                result = line.trim();
-            }
-            br.close();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return result;
     }
 
     /** This method is called from within the constructor to
@@ -64,7 +34,7 @@ public class DoctorDownloader extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(ca.canucksoftware.novacominstaller.NovacomInstallerApp.class).getContext().getResourceMap(DoctorDownloader.class);
+        org.jdesktop.application.ResourceMap resourceMap = org.jdesktop.application.Application.getInstance(ca.canucksoftware.novacominstaller.NovacomInstallerApp.class).getContext().getResourceMap(DriverDownloader.class);
         setBackground(resourceMap.getColor("transfer.background")); // NOI18N
         setCursor(new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR));
         setForeground(resourceMap.getColor("transfer.foreground")); // NOI18N
@@ -140,14 +110,13 @@ public class DoctorDownloader extends javax.swing.JDialog {
     class DoDownload extends TimerTask  {
         public void run() {
             t.cancel();
-            NovacomDrivers driver = new NovacomDrivers(url);
+            NovacomDrivers driver = new NovacomDrivers();
             driver.setGUI(jLabel1, jProgressBar1);
             if(driver.install()) {
                 JOptionPane.showMessageDialog(rootPane, "Driver installed successfully.");
             } else {
                 JOptionPane.showMessageDialog(rootPane, "ERROR: Driver installation failed");
             }
-            System.gc();
             dispose();
         }
     }
